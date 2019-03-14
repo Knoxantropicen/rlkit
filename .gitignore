@@ -3,3 +3,7 @@
 **/*.pyc
 **/*.swp
 rlkit/launchers/config.py
+.vscode/
+setpath.sh
+data/
+plot/
