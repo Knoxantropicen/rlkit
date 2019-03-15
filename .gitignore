@@ -7,3 +7,4 @@ rlkit/launchers/config.py
 setpath.sh
 data/
 plot/
+MUJOCO_LOG.TXT

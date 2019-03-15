@@ -15,13 +15,16 @@ from rlkit.envs.wrappers import NormalizedBoxEnv
 from rlkit.launchers.launcher_util import setup_logger
 from rlkit.torch.sac.policies import TanhGaussianPolicy
 from rlkit.torch.sac.sac import SoftActorCritic
+from rlkit.torch.sac.twin_sac import TwinSAC
 from rlkit.torch.networks import FlattenMlp
 
 
 parser = argparse.ArgumentParser(description='Run RL using RLKIT')
 parser.add_argument('--env-name', type=str, default='Ant-v2')
-parser.add_argument('--exp-id', type=str, default='baseline')
-parser.add_argument('--gpu', default=False, action='store_true')
+parser.add_argument('--exp-name', type=str, default='baseline')
+parser.add_argument('--algo', type=str, default='sac')  # support 'sac', 'tsac'
+parser.add_argument('--gpu-id', type=int, default=0)
+parser.add_argument('--cpu', default=False, action='store_true')
 args = parser.parse_args()
 
 
@@ -30,28 +33,60 @@ def experiment(variant):
 
     obs_dim = int(np.prod(env.observation_space.shape))
     action_dim = int(np.prod(env.action_space.shape))
-
     net_size = variant['net_size']
-    qf = FlattenMlp(
-        hidden_sizes=[net_size, net_size],
-        input_size=obs_dim + action_dim,
-        output_size=1,
+
+    algo_map = dict(
+        sac=dict(
+            algo=SoftActorCritic,
+            network=dict(
+                policy=TanhGaussianPolicy(
+                    hidden_sizes=[net_size, net_size],
+                    obs_dim=obs_dim,
+                    action_dim=action_dim,
+                ),
+                qf=FlattenMlp(
+                    hidden_sizes=[net_size, net_size],
+                    input_size=obs_dim + action_dim,
+                    output_size=1,
+                ),
+                vf=FlattenMlp(
+                    hidden_sizes=[net_size, net_size],
+                    input_size=obs_dim,
+                    output_size=1,
+                ),
+            )
+        ),
+        tsac=dict(
+            algo=TwinSAC,
+            network=dict(
+                policy=TanhGaussianPolicy(
+                    hidden_sizes=[net_size, net_size],
+                    obs_dim=obs_dim,
+                    action_dim=action_dim,
+                ),
+                qf1=FlattenMlp(
+                    hidden_sizes=[net_size, net_size],
+                    input_size=obs_dim + action_dim,
+                    output_size=1,
+                ),
+                qf2=FlattenMlp(
+                    hidden_sizes=[net_size, net_size],
+                    input_size=obs_dim + action_dim,
+                    output_size=1,
+                ),
+                vf=FlattenMlp(
+                    hidden_sizes=[net_size, net_size],
+                    input_size=obs_dim,
+                    output_size=1,
+                ),
+            )
+        ),
     )
-    vf = FlattenMlp(
-        hidden_sizes=[net_size, net_size],
-        input_size=obs_dim,
-        output_size=1,
-    )
-    policy = TanhGaussianPolicy(
-        hidden_sizes=[net_size, net_size],
-        obs_dim=obs_dim,
-        action_dim=action_dim,
-    )
-    algorithm = SoftActorCritic(
+
+    algo_type = algo_map[args.algo]
+    algorithm = algo_type['algo'](
         env=env,
-        policy=policy,
-        qf=qf,
-        vf=vf,
+        **algo_type['network'],
         **variant['algo_params']
     )
     algorithm.to(ptu.device)
@@ -77,8 +112,8 @@ def main():
         ),
         net_size=300,
     )
-    setup_logger(args.env_name, variant=variant, exp_id=args.exp_id)
-    ptu.set_gpu_mode(args.gpu)
+    setup_logger(args.env_name, variant=variant, exp_id=args.exp_name)
+    ptu.set_gpu_mode(not args.cpu, gpu_id=args.gpu_id)
     experiment(variant)
 
 
