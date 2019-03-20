@@ -5,12 +5,80 @@ from collections import OrderedDict
 
 import gtimer as gt
 import numpy as np
+import torch.multiprocessing as mp
+mp = mp.get_context('spawn')
 
 from rlkit.core import eval_util, logger
 from rlkit.data_management.env_replay_buffer import EnvReplayBuffer
 from rlkit.data_management.path_builder import PathBuilder
 from rlkit.policies.base import ExplorationPolicy
 from rlkit.samplers.in_place import InPlacePathSampler
+from rlkit.launchers.launcher_util import set_seed
+import rlkit.torch.pytorch_util as ptu
+
+
+def take_step_in_env_per_thread(pid, queue, env, policy, render,
+    reward_scale, steps, max_path_length, n_env_steps_total):
+    set_seed(pid)
+    n_rollouts_total = 0
+    current_path_builder = PathBuilder()
+    exploration_paths = []
+    replay_samples = {
+        'observations': [],
+        'actions': [],
+        'rewards': [],
+        'next_observations': [],
+        'terminals': [],
+        'agent_infos': [],
+        'env_infos': [],
+    }
+
+    policy.reset()
+    observation = env.reset()
+    policy.set_num_steps_total(n_env_steps_total)
+
+    for _ in range(steps):
+
+        action, agent_info = policy.get_action(observation)
+        if pid == 0 and render:
+            env.render()
+        next_ob, raw_reward, terminal, env_info = env.step(action)
+        reward = np.array([raw_reward * reward_scale])
+        terminal = np.array([terminal])
+
+        replay_samples['observations'].append(observation)
+        replay_samples['actions'].append(action)
+        replay_samples['rewards'].append(reward)
+        replay_samples['next_observations'].append(next_ob)
+        replay_samples['terminals'].append(terminal)
+        replay_samples['agent_infos'].append(agent_info)
+        replay_samples['env_infos'].append(env_info)
+
+        current_path_builder.add_all(
+            observations=observation,
+            actions=action,
+            rewards=reward,
+            next_observations=next_ob,
+            terminals=terminal,
+            agent_infos=agent_info,
+            env_infos=env_info,
+        )
+
+        if terminal or len(current_path_builder) >= max_path_length:
+            # cannot let replay buffer terminate episode
+            n_rollouts_total += 1
+            if len(current_path_builder) > 0:
+                exploration_paths.append(current_path_builder.get_all_stacked())
+                current_path_builder = PathBuilder()
+            policy.reset()
+            observation = env.reset()
+        else:
+            observation = next_ob
+    
+    if queue is None:
+        return exploration_paths, replay_samples, n_rollouts_total
+    else:
+        queue.put([pid, exploration_paths, replay_samples, n_rollouts_total])
 
 
 class RLAlgorithm(metaclass=abc.ABCMeta):
@@ -38,6 +106,7 @@ class RLAlgorithm(metaclass=abc.ABCMeta):
             eval_policy=None,
             replay_buffer=None,
             collection_mode='online',
+            num_threads=1,
     ):
         """
         Base class for RL Algorithms
@@ -82,6 +151,8 @@ class RLAlgorithm(metaclass=abc.ABCMeta):
             self.num_updates_per_train_call = num_updates_per_env_step
         else:
             self.num_updates_per_train_call = num_updates_per_epoch
+        self.num_threads = num_threads
+        self.queue = mp.Queue() if self.num_threads > 1 else None
         self.batch_size = batch_size
         self.max_path_length = max_path_length
         self.discount = discount
@@ -180,11 +251,12 @@ class RLAlgorithm(metaclass=abc.ABCMeta):
         ):
             self._start_epoch(epoch)
             set_to_train_mode(self.training_env)
-            observation = self._start_new_rollout()
-            # This implementation is rather naive. If you want to (e.g.)
-            # parallelize data collection, this would be the place to do it.
-            for _ in range(self.num_env_steps_per_epoch):
-                observation = self._take_step_in_env(observation)
+            if self.num_threads > 1:
+                self._take_batch_step_in_env()
+            else:
+                observation = self._start_new_rollout()
+                for _ in range(self.num_env_steps_per_epoch):
+                    observation = self._take_step_in_env(observation)
             gt.stamp('sample')
 
             self._try_to_train()
@@ -194,6 +266,25 @@ class RLAlgorithm(metaclass=abc.ABCMeta):
             self._try_to_eval(epoch)
             gt.stamp('eval')
             self._end_epoch(epoch)
+
+    def _take_batch_step_in_env(self):
+        workers = []
+        steps_per_thread = self.num_env_steps_per_epoch / self.num_threads
+
+        for pid in range(self.num_threads):
+            worker_args = (pid, self.queue, self.training_env, self.exploration_policy, self.render,
+                self.reward_scale, round(steps_per_thread * (pid + 1)) - round(steps_per_thread * pid),
+                self.max_path_length, self._n_env_steps_total)
+            workers.append(mp.Process(target=take_step_in_env_per_thread, args=worker_args))
+        for worker in workers:
+            worker.start()
+        
+        for _ in workers:
+            pid, exploration_paths, replay_samples, n_rollouts_total = self.queue.get()
+            self._exploration_paths.extend(exploration_paths)
+            self.replay_buffer.add_sample_batch(**replay_samples)
+            self._n_rollouts_total += n_rollouts_total
+        self._n_env_steps_total += self.num_env_steps_per_epoch
 
     def _take_step_in_env(self, observation):
         action, agent_info = self._get_action_and_info(

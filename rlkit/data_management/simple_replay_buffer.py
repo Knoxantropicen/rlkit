@@ -33,6 +33,31 @@ class SimpleReplayBuffer(ReplayBuffer):
         self._next_obs[self._top] = next_observation
         self._advance()
 
+    def add_sample_batch(self, observations, actions, rewards, terminals,
+                    next_observations, **kwargs):
+        assert len(observations) == len(actions) == len(rewards) == len(terminals) == len(next_observations)
+        batch_size = len(observations)
+        buffer_remaining_size = self._max_replay_buffer_size - self._top
+        sample_top = 0
+
+        while batch_size > buffer_remaining_size:
+            self._observations[self._top:] = observations[sample_top:buffer_remaining_size]
+            self._actions[self._top:] = actions[sample_top:buffer_remaining_size]
+            self._rewards[self._top] = rewards[sample_top:buffer_remaining_size]
+            self._terminals[self._top:] = terminals[sample_top:buffer_remaining_size]
+            self._next_obs[self._top:] = next_observations[sample_top:buffer_remaining_size]
+            self._advance_batch(buffer_remaining_size)
+            batch_size -= buffer_remaining_size
+            sample_top += buffer_remaining_size
+            buffer_remaining_size = self._max_replay_buffer_size
+        
+        self._observations[self._top:self._top+batch_size] = observations[sample_top:]
+        self._actions[self._top:self._top+batch_size] = actions[sample_top:]
+        self._rewards[self._top:self._top+batch_size] = rewards[sample_top:]
+        self._terminals[self._top:self._top+batch_size] = terminals[sample_top:]
+        self._next_obs[self._top:self._top+batch_size] = next_observations[sample_top:]
+        self._advance_batch(batch_size)
+
     def terminate_episode(self):
         pass
 
@@ -40,6 +65,12 @@ class SimpleReplayBuffer(ReplayBuffer):
         self._top = (self._top + 1) % self._max_replay_buffer_size
         if self._size < self._max_replay_buffer_size:
             self._size += 1
+        
+    def _advance_batch(self, n):
+        self._top = (self._top + n) % self._max_replay_buffer_size
+        if self._size < self._max_replay_buffer_size:
+            self._size += n
+            self._size = min(self._size, self._max_replay_buffer_size)
 
     def random_batch(self, batch_size):
         indices = np.random.randint(0, self._size, batch_size)
