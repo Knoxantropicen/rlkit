@@ -12,7 +12,7 @@ from gym.envs.mujoco import HalfCheetahEnv
 
 import rlkit.torch.pytorch_util as ptu
 from rlkit.envs.wrappers import NormalizedBoxEnv
-from rlkit.launchers.launcher_util import setup_logger
+from rlkit.launchers.launcher_util import setup_logger, set_seed
 from rlkit.torch.sac.policies import TanhGaussianPolicy
 from rlkit.torch.sac.sac import SoftActorCritic
 from rlkit.torch.sac.twin_sac import TwinSAC
@@ -25,7 +25,19 @@ parser.add_argument('--exp-name', type=str, default='baseline')
 parser.add_argument('--algo', type=str, default='sac')  # support 'sac', 'tsac'
 parser.add_argument('--gpu-id', type=int, default=0)
 parser.add_argument('--cpu', default=False, action='store_true')
+parser.add_argument('--seed', type=int, default=0)
+parser.add_argument('--num-threads', type=int, default=1)
+
+parser.add_argument('--train-mode', type=str, default='batch')
+parser.add_argument('--steps-per-epoch', type=int, default=1000)
+parser.add_argument('--updates-per-epoch', type=int, default=100)
+parser.add_argument('--batch-size', type=int, default=128)
+parser.add_argument('--reward-scale', type=float, default=1)
+parser.add_argument('--net-size', type=int, default=300)
 args = parser.parse_args()
+
+assert args.algo in ['sac', 'tsac']
+assert args.train_mode in ['batch', 'online']
 
 
 def experiment(variant):
@@ -95,24 +107,29 @@ def experiment(variant):
 
 def main():
     # noinspection PyTypeChecker
+    set_seed(args.seed)
     variant = dict(
         algo_params=dict(
             num_epochs=1000,
-            num_steps_per_epoch=1000,
+            num_steps_per_epoch=args.steps_per_epoch,
             num_steps_per_eval=1000,
-            batch_size=128,
+            batch_size=args.batch_size,
             max_path_length=999,
             discount=0.99,
-            reward_scale=1,
+            reward_scale=args.reward_scale,
 
             soft_target_tau=0.001,
             policy_lr=3E-4,
             qf_lr=3E-4,
             vf_lr=3E-4,
+            collection_mode=args.train_mode,
+            num_updates_per_epoch=args.updates_per_epoch,
+
+            num_threads=args.num_threads,
         ),
-        net_size=300,
+        net_size=args.net_size,
     )
-    setup_logger(args.env_name, variant=variant, exp_id=args.exp_name)
+    setup_logger(args.env_name, variant=variant, exp_id=args.exp_name, seed=args.seed)
     ptu.set_gpu_mode(not args.cpu, gpu_id=args.gpu_id)
     experiment(variant)
 
