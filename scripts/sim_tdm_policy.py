@@ -4,9 +4,9 @@ import json
 import joblib
 from pathlib import Path
 
-import rlkit.torch.pytorch_util as ptu
+import rlkit.pytorch.pytorch_util as ptu
 from rlkit.core.eval_util import get_generic_path_information
-from rlkit.torch.tdm.sampling import multitask_rollout
+from rlkit.pytorch.tdm.sampling import multitask_rollout
 from rlkit.core import logger
 if __name__ == "__main__":
 

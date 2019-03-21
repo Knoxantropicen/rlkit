@@ -5,7 +5,7 @@ import torch
 import cv2
 import numpy as np
 from gym.spaces import Box, Dict
-import rlkit.torch.pytorch_util as ptu
+import rlkit.pytorch.pytorch_util as ptu
 from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.envs.env_util import (
     get_stat_in_paths,

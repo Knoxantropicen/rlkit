@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 import time
 
-import rlkit.torch.vae.conv_vae as conv_vae
+import rlkit.pytorch.vae.conv_vae as conv_vae
 import torch
 from rlkit.util.io import load_local_or_remote_file
 from rlkit.exploration_strategies.epsilon_greedy import EpsilonGreedy
@@ -13,19 +13,19 @@ from rlkit.exploration_strategies.ou_strategy import OUStrategy
 
 from rlkit.pythonplusplus import identity
 from rlkit.envs.vae_wrapper import VAEWrappedEnv
-from rlkit.torch.vae.conv_vae import ConvVAE
-from rlkit.torch.vae.vae_trainer import ConvVAETrainer
+from rlkit.pytorch.vae.conv_vae import ConvVAE
+from rlkit.pytorch.vae.vae_trainer import ConvVAETrainer
 
 import rlkit.samplers.rollout_functions as rf
-import rlkit.torch.pytorch_util as ptu
+import rlkit.pytorch.pytorch_util as ptu
 from multiworld.core.image_env import ImageEnv, unormalize_image
 from rlkit.core import logger
 from rlkit.data_management.obs_dict_replay_buffer import ObsDictRelabelingBuffer
 from rlkit.exploration_strategies.base import (
     PolicyWrappedWithExplorationStrategy
 )
-from rlkit.torch.her.her import HerTd3
-from rlkit.torch.networks import FlattenMlp, TanhMlpPolicy
+from rlkit.pytorch.her.her import HerTd3
+from rlkit.pytorch.networks import FlattenMlp, TanhMlpPolicy
 from rlkit.util.video import dump_video
 import gym
 # trigger registration

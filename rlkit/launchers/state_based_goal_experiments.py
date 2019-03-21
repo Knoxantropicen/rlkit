@@ -5,7 +5,7 @@ import multiworld.envs.mujoco
 # noinspection PyUnresolvedReferences
 import multiworld.envs.pygame
 import rlkit.samplers.rollout_functions as rf
-import rlkit.torch.pytorch_util as ptu
+import rlkit.pytorch.pytorch_util as ptu
 from rlkit.exploration_strategies.base import (
     PolicyWrappedWithExplorationStrategy
 )
@@ -13,8 +13,8 @@ from rlkit.exploration_strategies.epsilon_greedy import EpsilonGreedy
 from rlkit.exploration_strategies.gaussian_strategy import GaussianStrategy
 from rlkit.exploration_strategies.ou_strategy import OUStrategy
 from rlkit.launchers.rig_experiments import get_video_save_func
-from rlkit.torch.her.her import HerTd3
-from rlkit.torch.networks import FlattenMlp, TanhMlpPolicy
+from rlkit.pytorch.her.her import HerTd3
+from rlkit.pytorch.networks import FlattenMlp, TanhMlpPolicy
 from rlkit.data_management.obs_dict_replay_buffer import (
     ObsDictRelabelingBuffer
 )

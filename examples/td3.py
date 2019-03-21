@@ -8,14 +8,14 @@ Note that one epoch = 5k steps, so 200 epochs = 1 million steps.
 """
 from gym.envs.mujoco import HopperEnv
 
-import rlkit.torch.pytorch_util as ptu
+import rlkit.pytorch.pytorch_util as ptu
 from rlkit.envs.wrappers import NormalizedBoxEnv
 from rlkit.exploration_strategies.base import \
     PolicyWrappedWithExplorationStrategy
 from rlkit.exploration_strategies.gaussian_strategy import GaussianStrategy
 from rlkit.launchers.launcher_util import setup_logger
-from rlkit.torch.networks import FlattenMlp, TanhMlpPolicy
-from rlkit.torch.td3.td3 import TD3
+from rlkit.pytorch.networks import FlattenMlp, TanhMlpPolicy
+from rlkit.pytorch.td3.td3 import TD3
 
 
 def experiment(variant):

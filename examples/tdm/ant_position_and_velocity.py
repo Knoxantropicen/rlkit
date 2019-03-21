@@ -1,14 +1,14 @@
-import rlkit.torch.pytorch_util as ptu
+import rlkit.pytorch.pytorch_util as ptu
 from rlkit.envs.wrappers import NormalizedBoxEnv
 from rlkit.exploration_strategies.base import \
     PolicyWrappedWithExplorationStrategy
 from rlkit.exploration_strategies.ou_strategy import OUStrategy
 from rlkit.launchers.launcher_util import setup_logger
-from rlkit.torch.modules import HuberLoss
-from rlkit.torch.tdm.envs.ant_env import GoalXYPosAndVelAnt
-from rlkit.torch.tdm.her_replay_buffer import HerReplayBuffer
-from rlkit.torch.tdm.networks import TdmNormalizer, TdmQf, TdmPolicy
-from rlkit.torch.tdm.tdm import TemporalDifferenceModel
+from rlkit.pytorch.modules import HuberLoss
+from rlkit.pytorch.tdm.envs.ant_env import GoalXYPosAndVelAnt
+from rlkit.pytorch.tdm.her_replay_buffer import HerReplayBuffer
+from rlkit.pytorch.tdm.networks import TdmNormalizer, TdmQf, TdmPolicy
+from rlkit.pytorch.tdm.tdm import TemporalDifferenceModel
 
 
 def experiment(variant):

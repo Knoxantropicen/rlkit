@@ -12,7 +12,7 @@ import pytz
 
 def example(variant):
     import torch
-    import rlkit.torch.pytorch_util as ptu
+    import rlkit.pytorch.pytorch_util as ptu
     print("Starting")
     logger.log(torch.__version__)
     date_format = '%m/%d/%Y %H:%M:%S %Z'

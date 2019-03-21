@@ -9,9 +9,9 @@ from rlkit.exploration_strategies.base import (
 )
 from rlkit.exploration_strategies.ou_strategy import OUStrategy
 from rlkit.launchers.launcher_util import setup_logger
-from rlkit.torch.networks import FlattenMlp, TanhMlpPolicy
-from rlkit.torch.ddpg.ddpg import DDPG
-import rlkit.torch.pytorch_util as ptu
+from rlkit.pytorch.networks import FlattenMlp, TanhMlpPolicy
+from rlkit.pytorch.ddpg.ddpg import DDPG
+import rlkit.pytorch.pytorch_util as ptu
 
 
 def experiment(variant):

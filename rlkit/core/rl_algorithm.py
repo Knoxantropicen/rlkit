@@ -14,7 +14,7 @@ from rlkit.data_management.path_builder import PathBuilder
 from rlkit.policies.base import ExplorationPolicy
 from rlkit.samplers.in_place import InPlacePathSampler
 from rlkit.launchers.launcher_util import set_seed
-import rlkit.torch.pytorch_util as ptu
+import rlkit.pytorch.pytorch_util as ptu
 
 
 def take_step_in_env_per_thread(pid, queue, env, policy, render,

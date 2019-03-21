@@ -1,6 +1,6 @@
 from rlkit.samplers.util import rollout
-from rlkit.torch.core import PyTorchModule
-from rlkit.torch.pytorch_util import set_gpu_mode
+from rlkit.pytorch.core import PyTorchModule
+from rlkit.pytorch.pytorch_util import set_gpu_mode
 import argparse
 import joblib
 import uuid

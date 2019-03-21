@@ -6,10 +6,10 @@ import gym
 import numpy as np
 from torch import nn as nn
 
-import rlkit.torch.pytorch_util as ptu
+import rlkit.pytorch.pytorch_util as ptu
 from rlkit.launchers.launcher_util import setup_logger
-from rlkit.torch.dqn.dqn import DQN
-from rlkit.torch.networks import Mlp
+from rlkit.pytorch.dqn.dqn import DQN
+from rlkit.pytorch.networks import Mlp
 
 
 def experiment(variant):

@@ -74,7 +74,7 @@ To use a GPU with the image, you need to have [nvidia-docker installed](https://
 ## Using a GPU
 You can use a GPU by calling
 ```
-import rlkit.torch.pytorch_util as ptu
+import rlkit.pytorch.pytorch_util as ptu
 ptu.set_gpu_mode(True)
 ```
 before launching the scripts.

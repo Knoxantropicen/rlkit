@@ -4,13 +4,13 @@ from TD3: https://arxiv.org/pdf/1802.09477.pdf
 """
 import numpy as np
 
-import rlkit.torch.pytorch_util as ptu
+import rlkit.pytorch.pytorch_util as ptu
 from rlkit.envs.wrappers import NormalizedBoxEnv
 from rlkit.launchers.launcher_util import setup_logger
-from rlkit.torch.sac.policies import TanhGaussianPolicy
-from rlkit.torch.sac.sac import SoftActorCritic
-from rlkit.torch.networks import FlattenMlp
-from rlkit.torch.sac.twin_sac import TwinSAC
+from rlkit.pytorch.sac.policies import TanhGaussianPolicy
+from rlkit.pytorch.sac.sac import SoftActorCritic
+from rlkit.pytorch.networks import FlattenMlp
+from rlkit.pytorch.sac.twin_sac import TwinSAC
 
 
 def experiment(variant):

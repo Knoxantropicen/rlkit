@@ -2,9 +2,9 @@
 Torch argmax policy
 """
 import numpy as np
-import rlkit.torch.pytorch_util as ptu
+import rlkit.pytorch.pytorch_util as ptu
 from rlkit.policies.base import SerializablePolicy
-from rlkit.torch.core import PyTorchModule
+from rlkit.pytorch.core import PyTorchModule
 
 
 class ArgmaxDiscretePolicy(PyTorchModule, SerializablePolicy):

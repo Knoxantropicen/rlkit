@@ -8,15 +8,14 @@ import argparse
 import numpy as np
 
 import gym
-from gym.envs.mujoco import HalfCheetahEnv
 
-import rlkit.torch.pytorch_util as ptu
+import rlkit.pytorch.pytorch_util as ptu
 from rlkit.envs.wrappers import NormalizedBoxEnv
 from rlkit.launchers.launcher_util import setup_logger, set_seed
-from rlkit.torch.sac.policies import TanhGaussianPolicy
-from rlkit.torch.sac.sac import SoftActorCritic
-from rlkit.torch.sac.twin_sac import TwinSAC
-from rlkit.torch.networks import FlattenMlp
+from rlkit.pytorch.sac.policies import TanhGaussianPolicy
+from rlkit.pytorch.sac.sac import SoftActorCritic
+from rlkit.pytorch.sac.twin_sac import TwinSAC
+from rlkit.pytorch.networks import FlattenMlp
 
 
 parser = argparse.ArgumentParser(description='Run RL using RLKIT')
